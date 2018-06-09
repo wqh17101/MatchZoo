@@ -54,6 +54,31 @@ class BaseModel(abc.ABC):
             512 eggs
             and Parma Ham
 
+        Notice that all parameters must be serialisable for the entire model
+        to be serialisable. Therefore, it's strongly recommended to use python
+        primitive data types to store parameters.
+
+        Example:
+            >>> import pickle
+            >>> import matchzoo
+            >>>
+            >>> # Don't do
+            >>> my_model = matchzoo.models.NaiveModel()
+            >>> my_model.params['my_func'] = lambda x: x
+            >>> my_model.guess_and_fill_missing_params()
+            >>> my_model.build()
+            >>> pickle.dumps(my_model.params)  # doctest: +ELLIPSIS
+            Traceback (most recent call last):
+            ...
+            _pickle.PicklingError: Can't pickle <function <lambda> at ...
+            >>>
+            >>> # DO
+            >>> my_model = matchzoo.models.NaiveModel()
+            >>> my_model.params['my_param'] = 'param'
+            >>> my_model.guess_and_fill_missing_params()
+            >>> my_model.build()
+            >>> assert pickle.dumps(my_model.params)
+
         :return: model parameters
 
         """

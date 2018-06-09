@@ -189,7 +189,7 @@ class BaseModel(abc.ABC):
 
         if self._params['task'] is None:
             # index 0 points to an abstract task class
-            self._params['task'] = engine.list_available_tasks()[1]
+            self._params['task'] = engine.list_available_tasks()[1]()
 
         if self._params['input_shapes'] is None:
             self._params['input_shapes'] = [(30,), (30,)]

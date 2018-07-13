@@ -9,13 +9,14 @@ import numpy as np
 import keras
 
 from matchzoo import engine
+from matchzoo import tasks
 
 
 class BaseModel(abc.ABC):
     """Abstract base class of all matchzoo models."""
 
     BACKEND_FILENAME = 'backend.h5'
-    PARAMS_FILENAME = 'params.pkl'
+    PARAMS_FILENAME = 'params.dill'
 
     def __init__(
             self,
@@ -121,15 +122,15 @@ class BaseModel(abc.ABC):
 
         See :meth:`keras.models.Model.fit` for more details.
 
-        :param x: input data
-        :param y: labels
-        :param batch_size: number of samples per gradient update
-        :param epochs: number of epochs to train the model
+        :param x: input data.
+        :param y: labels.
+        :param batch_size: number of samples per gradient update.
+        :param epochs: number of epochs to train the model.
         :param verbose: 0, 1, or 2. Verbosity mode. 0 = silent, 1 = verbose,
             2 = one log line per epoch.
 
         :return: A `keras.callbacks.History` instance. Its history attribute
-        contains all information collected during training.
+            contains all information collected during training.
         """
         return self._backend.fit(x=x, y=y,
                                  batch_size=batch_size, epochs=epochs,
@@ -201,7 +202,7 @@ class BaseModel(abc.ABC):
 
     def guess_and_fill_missing_params(self):
         """
-        Guess and fill missing parameters in :attribute:`params`.
+        Guess and fill missing parameters in :attr:`params`.
 
         Note: likely to be moved to a higher level API in the future.
         """
@@ -226,6 +227,16 @@ class BaseModel(abc.ABC):
 
         if self._params['optimizer'] is None:
             self._params['optimizer'] = 'adam'
+
+    def _make_output_layer(self):
+        """:return: a correctly shaped keras dense layer for model output."""
+        task = self._params['task']
+        if isinstance(task, tasks.Classification):
+            return keras.layers.Dense(task.num_classes, activation='softmax')
+        elif isinstance(task, tasks.Ranking):
+            return keras.layers.Dense(1, activation='sigmoid')
+        else:
+            raise ValueError("Invalid task type.")
 
 
 def load_model(dirpath: typing.Union[str, Path]) -> BaseModel:
